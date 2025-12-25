@@ -1,0 +1,384 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Currency Exchange Helper Mockup</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap");
+
+      :root {
+        --bg-1: #0b151c;
+        --bg-2: #1e2b2f;
+        --bg-3: #101f2a;
+        --ink-1: #f6f2e9;
+        --ink-2: #c9c3b8;
+        --accent-1: #f2b35a;
+        --accent-2: #d66e4f;
+        --accent-3: #7cd0d4;
+        --card: rgba(18, 26, 30, 0.82);
+        --card-stroke: rgba(246, 242, 233, 0.18);
+        --shadow: 0 30px 70px rgba(7, 11, 16, 0.45);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
+        color: var(--ink-1);
+        background:
+          radial-gradient(800px 500px at 10% 20%, rgba(242, 179, 90, 0.2), transparent 60%),
+          radial-gradient(700px 600px at 85% 10%, rgba(124, 208, 212, 0.2), transparent 55%),
+          radial-gradient(900px 900px at 70% 80%, rgba(214, 110, 79, 0.2), transparent 65%),
+          linear-gradient(125deg, var(--bg-1), var(--bg-2), var(--bg-3));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 32px;
+        overflow-x: hidden;
+        animation: bg-shift 18s ease-in-out infinite;
+      }
+
+      @keyframes bg-shift {
+        0%,
+        100% {
+          background-position: 0% 50%, 100% 0%, 70% 80%, 0% 50%;
+        }
+        50% {
+          background-position: 20% 40%, 80% 20%, 60% 90%, 100% 50%;
+        }
+      }
+
+      .shell {
+        width: min(1100px, 100%);
+        display: grid;
+        grid-template-columns: 1.1fr 0.9fr;
+        gap: 28px;
+        align-items: start;
+      }
+
+      .title-block {
+        padding: 22px 26px;
+        border-radius: 18px;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(14px);
+        animation: rise 0.8s ease-out;
+      }
+
+      .title-block h1 {
+        margin: 0 0 8px;
+        font-family: "Fraunces", "Georgia", serif;
+        font-size: clamp(26px, 3vw, 36px);
+        letter-spacing: 0.4px;
+      }
+
+      .title-block p {
+        margin: 0;
+        color: var(--ink-2);
+        line-height: 1.5;
+      }
+
+      .status-row {
+        display: flex;
+        gap: 14px;
+        margin-top: 16px;
+        flex-wrap: wrap;
+        font-size: 13px;
+        color: var(--ink-2);
+      }
+
+      .status-pill {
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: rgba(124, 208, 212, 0.18);
+        border: 1px solid rgba(124, 208, 212, 0.4);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-weight: 600;
+        color: var(--accent-3);
+      }
+
+      .panel {
+        background: var(--card);
+        border: 1px solid var(--card-stroke);
+        border-radius: 20px;
+        padding: 22px;
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(18px);
+        animation: rise 0.8s ease-out 0.1s both;
+      }
+
+      @keyframes rise {
+        from {
+          transform: translateY(16px);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+
+      .panel h2 {
+        margin: 0 0 14px;
+        font-size: 18px;
+        letter-spacing: 0.6px;
+        text-transform: uppercase;
+        color: var(--ink-2);
+      }
+
+      .ocr-box {
+        position: relative;
+        border-radius: 16px;
+        overflow: hidden;
+        background:
+          linear-gradient(120deg, rgba(20, 26, 31, 0.9), rgba(34, 48, 52, 0.7)),
+          repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0 12px, transparent 12px 24px);
+        min-height: 180px;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+      }
+
+      .ocr-label {
+        font-size: 12px;
+        color: var(--ink-2);
+        text-transform: uppercase;
+        letter-spacing: 1.2px;
+      }
+
+      .ocr-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 12px;
+      }
+
+      .ocr-cell {
+        padding: 10px 12px;
+        border-radius: 12px;
+        background: rgba(9, 12, 16, 0.55);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .ocr-cell span {
+        display: block;
+        font-size: 12px;
+        color: var(--ink-2);
+      }
+
+      .ocr-cell strong {
+        font-size: 20px;
+        letter-spacing: 0.4px;
+      }
+
+      .calc-grid {
+        display: grid;
+        gap: 16px;
+      }
+
+      .calc-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        padding: 14px 16px;
+        border-radius: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(12, 16, 20, 0.6);
+      }
+
+      .calc-row span {
+        color: var(--ink-2);
+      }
+
+      .calc-row strong {
+        font-size: 22px;
+      }
+
+      .suggested {
+        background: linear-gradient(135deg, rgba(242, 179, 90, 0.2), rgba(214, 110, 79, 0.2));
+        border-color: rgba(242, 179, 90, 0.5);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .suggested strong {
+        font-size: 28px;
+        color: var(--accent-1);
+      }
+
+      .suggested::after {
+        content: "";
+        position: absolute;
+        inset: -60% 50% auto -40%;
+        height: 220%;
+        background: radial-gradient(circle, rgba(242, 179, 90, 0.4), transparent 65%);
+        animation: pulse 2.8s ease-in-out infinite;
+        pointer-events: none;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          transform: translateX(-8%) scale(0.9);
+          opacity: 0.5;
+        }
+        50% {
+          transform: translateX(4%) scale(1);
+          opacity: 0.9;
+        }
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 18px;
+      }
+
+      .btn {
+        border: 0;
+        padding: 10px 16px;
+        border-radius: 999px;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+        cursor: pointer;
+        font-family: inherit;
+      }
+
+      .btn.primary {
+        background: var(--accent-1);
+        color: #19130b;
+      }
+
+      .btn.ghost {
+        background: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: var(--ink-1);
+      }
+
+      .right-panel {
+        display: grid;
+        gap: 20px;
+      }
+
+      .ratio-card {
+        padding: 20px;
+        border-radius: 18px;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        background: rgba(11, 16, 22, 0.6);
+      }
+
+      .ratio-card h3 {
+        margin: 0 0 8px;
+        text-transform: uppercase;
+        color: var(--ink-2);
+        font-size: 12px;
+        letter-spacing: 1.2px;
+      }
+
+      .ratio-value {
+        font-family: "Fraunces", "Georgia", serif;
+        font-size: 42px;
+        margin: 0;
+      }
+
+      .ratio-sub {
+        margin: 4px 0 0;
+        color: var(--ink-2);
+      }
+
+      .notes {
+        font-size: 13px;
+        color: var(--ink-2);
+        line-height: 1.5;
+      }
+
+      @media (max-width: 900px) {
+        .shell {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <section class="title-block">
+        <h1>Currency Exchange Helper</h1>
+        <p>Reads the market ratio and listing price from your screen, then suggests the correct ask for the target ratio.</p>
+        <div class="status-row">
+          <span class="status-pill">LIVE OCR</span>
+          <span>Region: Market Ratio panel</span>
+          <span>Refresh: 2.0s</span>
+        </div>
+      </section>
+
+      <section class="panel right-panel">
+        <div class="ratio-card">
+          <h3>Expected Ratio</h3>
+          <p class="ratio-value">231 : 1</p>
+          <p class="ratio-sub">Market Ratio detected</p>
+        </div>
+        <div class="notes">
+          Values update automatically. If OCR confidence drops, the app freezes the last good ratio and highlights the field.
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Screen Capture</h2>
+        <div class="ocr-box">
+          <span class="ocr-label">OCR Snapshot</span>
+          <div class="ocr-grid">
+            <div class="ocr-cell">
+              <span>Items Listed</span>
+              <strong>2</strong>
+            </div>
+            <div class="ocr-cell">
+              <span>Listing Price</span>
+              <strong>64 orbs</strong>
+            </div>
+            <div class="ocr-cell">
+              <span>Market Ratio</span>
+              <strong>231 : 1</strong>
+            </div>
+            <div class="ocr-cell">
+              <span>Confidence</span>
+              <strong>98%</strong>
+            </div>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="btn primary">Pick Screen Region</button>
+          <button class="btn ghost">Lock Region</button>
+          <button class="btn ghost">Pause OCR</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Suggested Ask</h2>
+        <div class="calc-grid">
+          <div class="calc-row">
+            <span>Items to sell</span>
+            <strong>2</strong>
+          </div>
+          <div class="calc-row">
+            <span>Market ratio</span>
+            <strong>231 : 1</strong>
+          </div>
+          <div class="calc-row suggested">
+            <span>Recommended price</span>
+            <strong>462 orbs</strong>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

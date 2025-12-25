@@ -7,3 +7,4 @@ crash.log
 build/
 dist/
 *.spec
+third_party/tesseract/

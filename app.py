@@ -6,6 +6,7 @@ import sys
 import threading
 from dataclasses import dataclass
 import json
+from pathlib import Path
 from typing import Optional, Tuple
 
 from PySide6 import QtCore, QtGui, QtWidgets
@@ -362,6 +363,14 @@ class MainWindow(QtWidgets.QMainWindow):
             self._timer.start()
 
     def _apply_tesseract_path(self) -> None:
+        bundled_dir = self._bundled_tesseract_dir()
+        if bundled_dir is not None:
+            bundled_exe = bundled_dir / "tesseract.exe"
+            if bundled_exe.exists():
+                pytesseract.pytesseract.tesseract_cmd = str(bundled_exe)
+                os.environ.setdefault("TESSDATA_PREFIX", str(bundled_dir))
+                return
+
         path = os.environ.get("TESSERACT_PATH")
         candidates = [
             path,
@@ -373,6 +382,14 @@ class MainWindow(QtWidgets.QMainWindow):
             if candidate and os.path.exists(candidate):
                 pytesseract.pytesseract.tesseract_cmd = candidate
                 return
+
+    @staticmethod
+    def _bundled_tesseract_dir() -> Optional[Path]:
+        if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
+            base = Path(sys._MEIPASS) / "tesseract"
+        else:
+            base = Path(__file__).resolve().parent / "third_party" / "tesseract"
+        return base if base.exists() else None
 
     @staticmethod
     def _tesseract_available() -> bool:

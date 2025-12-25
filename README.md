@@ -60,11 +60,14 @@ python app.py
 - `crash.log`: crash diagnostics (if any).
 
 ## Build a standalone EXE
-This produces a Windows executable that runs without Python installed. Tesseract still needs to be installed on the target machine.
+This produces a Windows executable that runs without Python installed and bundles Tesseract so users do not need to install it.
 
 ```powershell
 .\.venv\Scripts\python -m pip install pyinstaller
-.\.venv\Scripts\python -m PyInstaller --onefile --windowed --name "CurrencyExchangeHelper" app.py
+# Copy your local Tesseract install into the repo (not committed)
+robocopy "C:\Program Files\Tesseract-OCR" "third_party\tesseract" /E
+# Build the EXE with bundled Tesseract
+.\.venv\Scripts\python -m PyInstaller --onefile --windowed --name "CurrencyExchangeHelper" --add-data "third_party\tesseract;tesseract" app.py
 ```
 
 The EXE will be in `dist\CurrencyExchangeHelper.exe`.

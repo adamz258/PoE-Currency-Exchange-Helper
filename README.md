@@ -59,19 +59,6 @@ python app.py
 - `app.log`: OCR updates and app status logs.
 - `crash.log`: crash diagnostics (if any).
 
-## Build a standalone EXE
-This produces a Windows executable that runs without Python installed and bundles Tesseract so users do not need to install it.
-
-```powershell
-.\.venv\Scripts\python -m pip install pyinstaller
-# Copy your local Tesseract install into the repo (not committed)
-robocopy "C:\Program Files\Tesseract-OCR" "third_party\tesseract" /E
-# Build the EXE with bundled Tesseract
-.\.venv\Scripts\python -m PyInstaller --onefile --windowed --name "CurrencyExchangeHelper" --add-data "third_party\tesseract;tesseract" app.py
-```
-
-The EXE will be in `dist\CurrencyExchangeHelper.exe`.
-
 ## Troubleshooting
 - If you see "Tesseract OCR not found", verify the install and `TESSERACT_PATH`.
 - If Always on top does not stick, ensure no other app is forcing z-order.

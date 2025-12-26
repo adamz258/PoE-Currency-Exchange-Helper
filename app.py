@@ -302,7 +302,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self._full_geometry: Optional[QtCore.QRect] = None
         self._full_min_size: Optional[QtCore.QSize] = None
         self.setWindowTitle("Currency Exchange Helper")
-        self.resize(1120, 720)
+        self.resize(900, 600)
 
         self._parser = OcrParser()
         self._ratio_region: Optional[Region] = None
@@ -317,6 +317,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self._bad_streak = 0
         self._pending_key: Optional[tuple] = None
         self._pending_count = 0
+        self._last_ratio: Optional[tuple[float, float]] = None
+        self._ratio_miss_streak = 0
         self._swap_sides = False
         self._calc_mode = "auto"
         self._auto_direction = "from_right"
@@ -368,7 +370,11 @@ class MainWindow(QtWidgets.QMainWindow):
             bundled_exe = bundled_dir / "tesseract.exe"
             if bundled_exe.exists():
                 pytesseract.pytesseract.tesseract_cmd = str(bundled_exe)
-                os.environ.setdefault("TESSDATA_PREFIX", str(bundled_dir))
+                tessdata_dir = bundled_dir / "tessdata"
+                if tessdata_dir.exists():
+                    os.environ["TESSDATA_PREFIX"] = str(tessdata_dir)
+                else:
+                    os.environ["TESSDATA_PREFIX"] = str(bundled_dir)
                 return
 
         path = os.environ.get("TESSERACT_PATH")
@@ -403,13 +409,14 @@ class MainWindow(QtWidgets.QMainWindow):
         self._stack = QtWidgets.QStackedWidget()
         self._full_root = QtWidgets.QWidget()
         grid = QtWidgets.QGridLayout(self._full_root)
-        grid.setSpacing(18)
-        grid.setContentsMargins(24, 24, 24, 24)
+        grid.setSpacing(8)
+        grid.setContentsMargins(10, 10, 10, 10)
         grid.setColumnStretch(0, 3)
         grid.setColumnStretch(1, 2)
 
         self._title_panel = self._panel()
         title_layout = QtWidgets.QVBoxLayout(self._title_panel)
+        title_layout.setSpacing(6)
         self._title_label = QtWidgets.QLabel("Currency Exchange Helper")
         self._title_label.setObjectName("titleLabel")
         self._subtitle_label = QtWidgets.QLabel(
@@ -431,6 +438,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self._ratio_panel = self._panel()
         ratio_layout = QtWidgets.QVBoxLayout(self._ratio_panel)
+        ratio_layout.setSpacing(4)
         ratio_title = QtWidgets.QLabel("Expected Ratio")
         ratio_title.setObjectName("sectionTitle")
         self._ratio_value = QtWidgets.QLabel("--")
@@ -446,11 +454,14 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self._capture_panel = self._panel()
         capture_layout = QtWidgets.QVBoxLayout(self._capture_panel)
+        capture_layout.setSpacing(6)
         capture_title = QtWidgets.QLabel("Screen Capture")
         capture_title.setObjectName("sectionTitle")
         capture_layout.addWidget(capture_title)
 
         stats_grid = QtWidgets.QGridLayout()
+        stats_grid.setHorizontalSpacing(10)
+        stats_grid.setVerticalSpacing(6)
         self._left_value = self._stat_block("I want", "--")
         self._right_value = self._stat_block("I have", "--")
         self._confidence_value = self._stat_block("Confidence", "--")
@@ -462,6 +473,7 @@ class MainWindow(QtWidgets.QMainWindow):
         capture_layout.addLayout(stats_grid)
 
         button_row = QtWidgets.QHBoxLayout()
+        button_row.setSpacing(6)
         self._pick_ratio_button = QtWidgets.QPushButton("Pick Ratio")
         self._pick_ratio_button.clicked.connect(lambda: self._pick_region("ratio"))
         self._pick_left_button = QtWidgets.QPushButton("Pick Left Box")
@@ -481,6 +493,7 @@ class MainWindow(QtWidgets.QMainWindow):
         capture_layout.addLayout(button_row)
 
         swap_row = QtWidgets.QHBoxLayout()
+        swap_row.setSpacing(6)
         self._swap_checkbox = QtWidgets.QCheckBox("Swap Left/Right")
         self._swap_checkbox.stateChanged.connect(self._toggle_swap)
         swap_row.addWidget(self._swap_checkbox)
@@ -488,6 +501,7 @@ class MainWindow(QtWidgets.QMainWindow):
         capture_layout.addLayout(swap_row)
 
         mode_row = QtWidgets.QHBoxLayout()
+        mode_row.setSpacing(6)
         mode_label = QtWidgets.QLabel("Mode")
         mode_label.setObjectName("mutedText")
         self._mode_combo = QtWidgets.QComboBox()
@@ -505,6 +519,7 @@ class MainWindow(QtWidgets.QMainWindow):
         capture_layout.addLayout(mode_row)
 
         top_row = QtWidgets.QHBoxLayout()
+        top_row.setSpacing(6)
         self._top_checkbox = QtWidgets.QCheckBox("Always on top")
         self._top_checkbox.setTristate(False)
         self._top_checkbox.toggled.connect(self._toggle_topmost)
@@ -526,6 +541,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self._suggest_panel = self._panel()
         suggest_layout = QtWidgets.QVBoxLayout(self._suggest_panel)
+        suggest_layout.setSpacing(6)
+        suggest_layout.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop)
         suggest_title = QtWidgets.QLabel("Suggested Ask")
         suggest_title.setObjectName("sectionTitle")
         suggest_layout.addWidget(suggest_title)
@@ -544,8 +561,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self._expected_left = self._stat_row("Expected I want", "--")
         self._expected_right = self._stat_row("Expected I have", "--")
         self._ratio_summary = self._stat_row("Market ratio", "--")
+        suggest_layout.addSpacing(16)
         suggest_layout.addLayout(self._expected_left[0])
+        suggest_layout.addSpacing(16)
         suggest_layout.addLayout(self._expected_right[0])
+        suggest_layout.addSpacing(16)
         suggest_layout.addLayout(self._ratio_summary[0])
 
         grid.addWidget(self._title_panel, 0, 0)
@@ -598,6 +618,22 @@ class MainWindow(QtWidgets.QMainWindow):
         mini_controls.addStretch(1)
         mini_panel_layout.addLayout(mini_controls)
 
+        mini_mode_row = QtWidgets.QHBoxLayout()
+        mini_mode_label = QtWidgets.QLabel("Mode")
+        mini_mode_label.setObjectName("miniTitle")
+        self._mini_mode_combo = QtWidgets.QComboBox()
+        self._mini_mode_combo.addItems(
+            [
+                "Auto",
+                "I have -> calc I want",
+                "I want -> calc I have",
+            ]
+        )
+        self._mini_mode_combo.currentIndexChanged.connect(self._change_mode)
+        mini_mode_row.addWidget(mini_mode_label)
+        mini_mode_row.addWidget(self._mini_mode_combo)
+        mini_panel_layout.addLayout(mini_mode_row)
+
         mini_layout.addWidget(mini_panel)
         self._stack.addWidget(self._minimal_root)
         self._stack.setCurrentWidget(self._full_root)
@@ -610,6 +646,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self._mini_recommended_value,
             self._mini_top_checkbox,
             self._mini_minimal_checkbox,
+            self._mini_mode_combo,
         ):
             widget.installEventFilter(self)
 
@@ -624,29 +661,30 @@ class MainWindow(QtWidgets.QMainWindow):
                 font-family: "Segoe UI";
             }
             QLabel#titleLabel {
-                font-size: 26px;
+                font-size: 18px;
                 font-weight: 700;
             }
             QLabel#sectionTitle {
-                font-size: 12px;
+                font-size: 16px;
                 text-transform: uppercase;
                 letter-spacing: 1px;
-                color: #c9c3b8;
+                color: #f6f2e9;
             }
             QLabel#mutedText {
                 color: #c9c3b8;
+                font-size: 14px;
             }
             QLabel#ratioValue {
-                font-size: 34px;
+                font-size: 14px;
                 font-weight: 600;
             }
             QLabel#recommendedValue {
-                font-size: 28px;
+                font-size: 16px;
                 font-weight: 700;
                 color: #f2b35a;
             }
             QLabel#miniTitle {
-                font-size: 10px;
+                font-size: 12px;
                 text-transform: uppercase;
                 color: #c9c3b8;
             }
@@ -663,25 +701,28 @@ class MainWindow(QtWidgets.QMainWindow):
                 font-size: 10px;
                 color: #c9c3b8;
             }
+            QComboBox {
+                font-size: 10px;
+            }
             QLabel#statusPill {
                 background: #223843;
                 color: #7cd0d4;
                 border: 1px solid #7cd0d4;
                 border-radius: 12px;
-                padding: 4px 10px;
-                font-size: 11px;
+                padding: 2px 6px;
+                font-size: 12px;
                 font-weight: 700;
             }
             QFrame[panel="true"] {
                 background: #141b20;
                 border: 1px solid #2a343c;
-                border-radius: 16px;
+                border-radius: 12px;
             }
             QFrame#highlight {
                 background: #2a2012;
                 border: 1px solid #f2b35a;
-                border-radius: 12px;
-                padding: 12px;
+                border-radius: 10px;
+                padding: 6px;
             }
             QPlainTextEdit#rawText {
                 background: #10161b;
@@ -691,8 +732,9 @@ class MainWindow(QtWidgets.QMainWindow):
             QPushButton {
                 background: #1c252b;
                 border: 1px solid #2e3a42;
-                padding: 8px 12px;
+                padding: 4px 12px;
                 border-radius: 6px;
+                font-size: 12px;
             }
             QPushButton:hover {
                 border-color: #7cd0d4;
@@ -703,15 +745,16 @@ class MainWindow(QtWidgets.QMainWindow):
     def _panel(self) -> QtWidgets.QFrame:
         panel = QtWidgets.QFrame()
         panel.setProperty("panel", True)
-        panel.setContentsMargins(16, 16, 16, 16)
+        panel.setContentsMargins(8, 8, 8, 8)
         return panel
 
     def _stat_block(self, label: str, value: str, large: bool = True):
         layout = QtWidgets.QVBoxLayout()
         label_widget = QtWidgets.QLabel(label)
         label_widget.setObjectName("mutedText")
+        label_widget.setFont(QtGui.QFont("Segoe UI", 10, QtGui.QFont.Weight.Medium))
         value_widget = QtWidgets.QLabel(value)
-        value_widget.setFont(QtGui.QFont("Segoe UI", 20 if large else 14, QtGui.QFont.Weight.Medium))
+        value_widget.setFont(QtGui.QFont("Segoe UI", 10, QtGui.QFont.Weight.Medium))
         if not large:
             value_widget.setWordWrap(True)
         layout.addWidget(label_widget)
@@ -722,8 +765,9 @@ class MainWindow(QtWidgets.QMainWindow):
         layout = QtWidgets.QHBoxLayout()
         label_widget = QtWidgets.QLabel(label)
         label_widget.setObjectName("mutedText")
+        label_widget.setFont(QtGui.QFont("Segoe UI", 11, QtGui.QFont.Weight.Medium))
         value_widget = QtWidgets.QLabel(value)
-        value_widget.setFont(QtGui.QFont("Segoe UI", 18, QtGui.QFont.Weight.Medium))
+        value_widget.setFont(QtGui.QFont("Segoe UI", 10, QtGui.QFont.Weight.Medium))
         layout.addWidget(label_widget)
         layout.addStretch(1)
         layout.addWidget(value_widget)
@@ -950,19 +994,36 @@ class MainWindow(QtWidgets.QMainWindow):
             self._calc_mode = "from_left"
         else:
             self._calc_mode = "auto"
+        if hasattr(self, "_mode_combo") and self._mode_combo.currentIndex() != index:
+            self._mode_combo.blockSignals(True)
+            self._mode_combo.setCurrentIndex(index)
+            self._mode_combo.blockSignals(False)
+        if hasattr(self, "_mini_mode_combo") and self._mini_mode_combo.currentIndex() != index:
+            self._mini_mode_combo.blockSignals(True)
+            self._mini_mode_combo.setCurrentIndex(index)
+            self._mini_mode_combo.blockSignals(False)
         self._last_inputs = None
         self._save_regions()
-        self._set_status(f"Mode set to {self._mode_combo.currentText()}.")
+        mode_text = self._mode_combo.currentText() if hasattr(self, "_mode_combo") else "mode"
+        self._set_status(f"Mode set to: '{mode_text}'.")
         if self._regions_ready():
             QtCore.QTimer.singleShot(100, self._tick)
 
     def _set_mode_combo(self, mode: str) -> None:
         if mode == "from_right":
-            self._mode_combo.setCurrentIndex(1)
+            index = 1
         elif mode == "from_left":
-            self._mode_combo.setCurrentIndex(2)
+            index = 2
         else:
-            self._mode_combo.setCurrentIndex(0)
+            index = 0
+        if hasattr(self, "_mode_combo"):
+            self._mode_combo.blockSignals(True)
+            self._mode_combo.setCurrentIndex(index)
+            self._mode_combo.blockSignals(False)
+        if hasattr(self, "_mini_mode_combo"):
+            self._mini_mode_combo.blockSignals(True)
+            self._mini_mode_combo.setCurrentIndex(index)
+            self._mini_mode_combo.blockSignals(False)
 
     def _tick(self) -> None:
         if self._paused or self._busy:
@@ -1003,7 +1064,8 @@ class MainWindow(QtWidgets.QMainWindow):
         right_value, right_text = self._ocr_box_value(right_image, fast=True)
 
         if ratio_num is None or ratio_den is None:
-            ratio_num, ratio_den, ratio_text = self._ocr_ratio(ratio_image, fast=False)
+            if self._last_ratio is None:
+                ratio_num, ratio_den, ratio_text = self._ocr_ratio(ratio_image, fast=False)
         if left_value is None:
             left_value, left_text = self._ocr_box_value(left_image, fast=False)
         if right_value is None:
@@ -1405,6 +1467,23 @@ class MainWindow(QtWidgets.QMainWindow):
             display = result
         else:
             display = self._last_good if self._last_good else result
+
+        if result.has_ratio:
+            self._last_ratio = (result.ratio_num, result.ratio_den)
+            self._ratio_miss_streak = 0
+        else:
+            self._ratio_miss_streak += 1
+            if self._last_ratio is not None and not display.has_ratio:
+                cached_num, cached_den = self._last_ratio
+                display = ParseResult(
+                    display.items,
+                    display.listing_price,
+                    cached_num,
+                    cached_den,
+                    display.raw_text,
+                    display.left_value,
+                    display.right_value,
+                )
 
         left_input = display.left_value
         right_input = display.right_value

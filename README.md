@@ -3,6 +3,11 @@
 Lightweight Windows 11 desktop app that reads the Path of Exile currency exchange UI from your screen and suggests the correct side to match the market ratio.
 
 ## Screenshot
+Full view
+![Full view](screenshots/currency-exchange-helper-full.png)
+
+Minimal overlay
+![Minimal overlay](screenshots/currency-exchange-helper-minimal.png)
 
 ## Demo
 
@@ -53,13 +58,6 @@ python app.py
    - `I want -> calc I have`: uses left input + ratio to recommend right input.
 5. Toggle `Always on top` if you want it above the game window.
 6. Toggle `Minimal mode` for a compact overlay showing only ratio + recommendation.
-
-## Screenshots
-Full view
-![Full view](screenshots/currency-exchange-helper-full.png)
-
-Minimal overlay
-![Minimal overlay](screenshots/currency-exchange-helper-minimal.png)
 
 ## OCR accuracy tips
 - Make the ratio region as tight as possible around the digits and colon.

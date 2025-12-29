@@ -54,6 +54,13 @@ python app.py
 5. Toggle `Always on top` if you want it above the game window.
 6. Toggle `Minimal mode` for a compact overlay showing only ratio + recommendation.
 
+## Screenshots
+Full view
+![Full view](screenshots/currency-exchange-helper-full.png)
+
+Minimal overlay
+![Minimal overlay](screenshots/currency-exchange-helper-minimal.png)
+
 ## OCR accuracy tips
 - Make the ratio region as tight as possible around the digits and colon.
 - Avoid extra UI text, borders, or icons in the ratio selection.

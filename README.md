@@ -2,9 +2,11 @@
 
 Lightweight Windows 11 desktop app that reads the Path of Exile currency exchange UI from your screen and suggests the correct side to match the market ratio.
 
+## Screenshot
+
 ## Demo
 
-https://www.youtube.com/watch?v=8QfIVkGjcI0
+[https://www.youtube.com/watch?v=8QfIVkGjcI0](https://www.youtube.com/watch?v=XWeC14SeLfc)
 
 ## What it does
 - Reads the market ratio and your input boxes via OCR.
